@@ -153,7 +153,7 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
       }
     }
     if (newDeck.p1Deck.length === 0 || newDeck.p2Deck.length === 0) {
-      isNotOver = true;
+      isNotOver = false;
       if (newDeck.p1Deck.length === 0) {
         console.log("Player win this match!");
       }
