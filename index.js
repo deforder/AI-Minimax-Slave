@@ -5,7 +5,7 @@ const cardSpecial = ['3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'
 const cardFace = ['C', 'D', 'H', 'S'];
 
 const getAISelectedCards = (isOdd, p1Deck, p2Deck, selectedCards, highestValue) => {
-  return [0, 1, 2, 3];
+  return [8, 9, 10, 11];
 }
 
 const sortNumber = (a, b) => {
@@ -21,19 +21,33 @@ const convertNumToCard = (cardNum) => {
   return cardName;
 }
 
-const validateSelectedCards = (isOdd, selectedCards, currentDeck) => {
+const validateSelectedCards = (isOdd, selectedCards, currentDeck, previousCardNum,isPower) => {
   let isError = false;
   if (isOdd != null) {
-    if (isOdd && selectedCards.length % 2 == 0) {
-      console.log("you can't use even cards on this round");
-      return true;
+    if (isOdd){
+      if (selectedCards.length % 2 == 0) {
+        console.log("you can't use even cards on this round");
+        return true;
+      }
+      if((Math.floor(selectedCards.length /3) === 0) && isPower){
+        console.log("you must use 3 cards");
+        return true;
+      }
     }
-    if (!isOdd && selectedCards.length % 2 == 1) {
-      console.log("you can't use odd cards on this round");
-      return true;
+    else{
+      if (selectedCards.length % 2 == 1) {
+        console.log("you can't use odd cards on this round");
+        return true;
+      }
+      if((Math.floor(selectedCards.length /3) === 0) && isPower){
+        console.log("you must use 4 cards");
+        return true;
+      }
     }
   }
+
   let representCardNum = null;  
+  let selectedCardsUsed = [];
   selectedCards.forEach(element => {
     let selectedCardNum = Math.floor(element/4);
     if(representCardNum != null && selectedCardNum != representCardNum){
@@ -46,6 +60,21 @@ const validateSelectedCards = (isOdd, selectedCards, currentDeck) => {
       console.log("you don't have the card");
       isError = true;
       return;
+    }
+    if(previousCardNum != null && selectedCardNum < previousCardNum){
+      if(isPower !== true && Math.floor(selectedCards.length/2) == 0){
+        console.log("you can't use lower point cards");
+        isError = true;
+        return;
+      }
+    }
+    if(selectedCardsUsed.indexOf(element) != -1){
+      console.log("you can't use same card multiple times")
+      isError = true;
+      return;
+    }
+    else{
+      selectedCardsUsed.push(element);
     }
   });
   
@@ -88,6 +117,8 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
   newDeck.p1Deck.sort(sortNumber);
   newDeck.p2Deck.sort(sortNumber);
   let isOdd = null;
+  let previousCardNum = null;
+  let isPower = false;
   while (isNotOver) {
     console.log('Your current Card: ');
     newDeck.p1Deck.forEach(element => {
@@ -96,6 +127,8 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
     console.log();
     if (isOdd == null) {
       console.log('====== NEW ROUND ======');
+      previousCardNum = null;
+      isPower = false;
     }
     else {
       process.stdout.write((isOdd ? '[Odd]' : '[Even]') + ' ');
@@ -115,14 +148,16 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
       isOdd = null;
     }
 
-    if (!validateSelectedCards(isOdd,selectedCards,newDeck.p1Deck)) {
-      console.log(validateSelectedCards(isOdd,selectedCards,newDeck.p1Deck));
+    if (!validateSelectedCards(isOdd,selectedCards,newDeck.p1Deck,previousCardNum,isPower)) {
       if (selectedCards.length > 0) {
         if (selectedCards.length % 2 == 0) {
           isOdd = false;
         }
         else {
           isOdd = true;
+        }
+        if(selectedCards.length > 2){
+          isPower = true;  
         }
       }
       selectedCards.forEach(element => {
@@ -144,7 +179,11 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
         else {
           isOdd = true;
         }
+        if(aiSelectedCards.length > 2){
+          isPower = true;
+        }
         aiSelectedCards.forEach(element => {
+          previousCardNum = Math.floor(element/4);
           process.stdout.write(convertNumToCard(element) + ' ');;
           let index = newDeck.p2Deck.indexOf(element);
           newDeck.p2Deck.splice(index, 1);
