@@ -37,7 +37,25 @@ const getAISelectedCards = (isOdd, currentDeckP1, currentDeckP2, p1_selectedCard
 
 const heuristic = (state,highestCardValue)=>{
     const groupNode = GroupNode(state)
-    return groupNode.length
+    var maxVal  = highestCardValue * 2
+    var score = 0
+    groupNode.forEach(e =>{
+        console.log(e)
+        // console.log(e.length)
+        var number = parseInt((e[0]+4)/4)
+        for (let i = 1; i < highestCardValue; i++) {
+            //    console.log(number)
+            if(i == number) {
+                if (e.length == 3 || e.length == 4) {
+                    score += highestCardValue - i + 1                  
+                } else {
+                    score += maxVal - i +1
+                }
+                console.log(score)
+            } 
+        }
+    })
+    return score
 }
 
 const min_value_function = (p2_selectedCard,currentDeckP1,currentDeckP2,a,b,level,highestCardValue,isOdd) =>{
@@ -277,6 +295,9 @@ const validateSelectedCards = (isOdd, selectedCards, currentDeck, previousCardNu
   return isError;
 }
 
-getAISelectedCards(true,[ 6, 7, 10, 13, 14, 15 ], [ 1, 2, 3, 5, 8, 11],[],4).then((results)=>{
-    console.log('Ai Choose ',results)
-})
+// getAISelectedCards(true,[ 6, 7, 10, 13, 14, 15 ], [ 1, 2, 3, 5, 8, 11],[],4).then((results)=>{
+//     console.log('Ai Choose ',results)
+// })
+
+
+console.log(heuristic([ 6, 7, 10, 13, 14, 15 ],5))
