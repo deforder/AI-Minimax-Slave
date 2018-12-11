@@ -372,6 +372,7 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
         previousCardPoint = null;
         isPower = false;
       }
+      selectedCards.sort(sortNumber);
       let validateResult = validateSelectedCards(isOdd, selectedCards, newDeck.p1Deck, previousCardPoint, isPower);
       if (!validateResult.isError) {
         if (selectedCards.length > 0) {
