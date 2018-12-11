@@ -10,7 +10,7 @@ var max_depth = 3
 const getAISelectedCards = (isOdd, currentDeckP1, currentDeckP2, p1_selectedCards, highestCardValue) => {
   return new Promise((resolve, reject) => {
     var action
-    var maxVal = -100
+    var minVal = 500
     const a = 5
     const b = -5
     const p2_selectedCard = getPossibleCard(p1_selectedCards, SortArray(allExpand(currentDeckP2)), currentDeckP2, isOdd)
@@ -25,8 +25,8 @@ const getAISelectedCards = (isOdd, currentDeckP1, currentDeckP2, p1_selectedCard
           currentDeckP2_slice.splice(currentDeckP2_slice.indexOf(e), 1)
         })
         min_value_function(element, currentDeckP1, currentDeckP2_slice, a, b, 0, highestCardValue, isOdd).then((results) => {
-          if (results > maxVal) {
-            maxVal = results
+          if (results < minVal) {
+            minVal = results
             action = element
             resolve(action)
           }
@@ -36,25 +36,40 @@ const getAISelectedCards = (isOdd, currentDeckP1, currentDeckP2, p1_selectedCard
   })
 }
 
-const heuristic = (state, highestCardValue) => {
-  const groupNode = GroupNode(state)
-  return groupNode.length
+const heuristic = (state,highestCardValue)=>{
+    const groupNode = GroupNode(state)
+    var maxVal  = highestCardValue * 2
+    var score = 0
+    groupNode.forEach(e =>{
+        var number = parseInt((e[0]+4)/4)
+        for (let i = 1; i < highestCardValue; i++) {
+            if(i == number) {
+                if (e.length == 3 || e.length == 4) {
+                    score += maxVal - i +1                  
+                } else {
+                    score += highestCardValue - i + 1 
+                }
+            } 
+        }
+    })
+    return score
 }
 
 const min_value_function = (p2_selectedCard, currentDeckP1, currentDeckP2, a, b, level, highestCardValue, isOdd) => {
   return new Promise((resolve, reject) => {
     if (level >= max_depth) {
       const ret_u = heuristic(currentDeckP2, highestCardValue)
+      // console.log(ret_u)
       resolve(ret_u)
     } else {
       if (currentDeckP2.length == 0) {
-        resolve(99)
+        resolve(heuristic(currentDeckP2, highestCardValue))
       }
       const p1_selectedCard = getPossibleCard(p2_selectedCard, SortArray(allExpand(currentDeckP1)), currentDeckP1, isOdd)
       if (p1_selectedCard.length == 0) {
-        resolve(99)
+        resolve(heuristic(currentDeckP2, highestCardValue))
       }
-      let v = 100
+      let v = 500
       p1_selectedCard.forEach(element => {
         var currentDeckP1_slice = currentDeckP1.slice();
         element.forEach(e => {
@@ -73,14 +88,16 @@ const max_value_function = (p1_selectedCard, currentDeckP1, currentDeckP2, a, b,
   return new Promise((resolve, reject) => {
     if (level >= max_depth) {
       const ret_u = heuristic(currentDeckP1, highestCardValue)
+      // console.log(ret_u)
+      resolve(ret_u)
     } else {
       if (currentDeckP1.length == 0) {
-        resolve(-99)
+        resolve(heuristic(currentDeckP2, highestCardValue))
       }
       const p2_selectedCard = getPossibleCard(p1_selectedCard, SortArray(allExpand(currentDeckP2)), currentDeckP2, isOdd)
-      let v = -100
+      let v = -500
       if (p2_selectedCard.length == 0) {
-        resolve(-99)
+        resolve(heuristic(currentDeckP2, highestCardValue))
       }
       p2_selectedCard.forEach(element => {
         var currentDeckP2_slice = currentDeckP2.slice();
@@ -88,7 +105,7 @@ const max_value_function = (p1_selectedCard, currentDeckP1, currentDeckP2, a, b,
           currentDeckP2_slice.splice(currentDeckP2_slice.indexOf(e), 1)
         })
         if (currentDeckP2_slice.length == 0) {
-          resolve(-99)
+          resolve(-50)
         } else {
           min_value_function(element, currentDeckP1, currentDeckP2_slice, a, b, level + 1, highestCardValue, isOdd).then((results) => {
             v = Math.max(v, results)

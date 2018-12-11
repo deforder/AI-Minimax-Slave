@@ -37,7 +37,21 @@ const getAISelectedCards = (isOdd, currentDeckP1, currentDeckP2, p1_selectedCard
 
 const heuristic = (state,highestCardValue)=>{
     const groupNode = GroupNode(state)
-    return groupNode.length
+    var maxVal  = highestCardValue * 2
+    var score = 0
+    groupNode.forEach(e =>{
+        var number = parseInt((e[0]+4)/4)
+        for (let i = 1; i < highestCardValue; i++) {
+            if(i == number) {
+                if (e.length == 3 || e.length == 4) {
+                    score += highestCardValue - i + 1                  
+                } else {
+                    score += maxVal - i +1
+                }
+            } 
+        }
+    })
+    return score
 }
 
 const min_value_function = (p2_selectedCard,currentDeckP1,currentDeckP2,a,b,level,highestCardValue,isOdd) =>{
