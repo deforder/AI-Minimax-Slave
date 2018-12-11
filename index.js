@@ -281,7 +281,7 @@ const validateSelectedCards = (isOdd, selectedCards, currentDeck, previousCardPo
       return;
     }
     if (previousCardPoint != null && element < previousCardPoint) {
-      if (isPower !== true && Math.floor(selectedCards.length / 2) == 0) {
+      if ((isPower || Math.floor(selectedCards.length / 2) == 0)) {
         result.msg = "you can't use lower point cards";
         result.isError = true;
         return;
