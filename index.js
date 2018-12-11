@@ -164,9 +164,9 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
         let index = newDeck.p1Deck.indexOf(element);
         newDeck.p1Deck.splice(index, 1);
       });
-      console.log('Your Deck ',newDeck.p1Deck)
-      console.log('Selected ',selectedCards)
-      console.log('Ai Deck:')
+      // console.log('Your Deck ',newDeck.p1Deck)
+      // console.log('Selected ',selectedCards)
+      // console.log('Ai Deck:')
       newDeck.p2Deck.forEach(element => {
         process.stdout.write(convertNumToCard(element) + ' ');
       });
