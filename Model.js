@@ -6,7 +6,7 @@ const highestCardValue = 3
 const isOdd = true
 
 // Ai Playing Card
-const getAISelectedCards = (currentDeckP1, currentDeckP2, p1_selectedCards, highestCardValue, isOdd) => {
+const getAISelectedCards = (isOdd, currentDeckP1, currentDeckP2, p1_selectedCards, highestCardValue) => {
     return new Promise((resolve, reject) => {
         var action
         var maxVal = -100
@@ -46,13 +46,13 @@ const min_value_function = (p2_selectedCard,currentDeckP1,currentDeckP2,a,b,leve
             const ret_u = heuristic(currentDeckP2,highestCardValue)
             resolve(ret_u)
         } else {
-            if(currentDeckP2.length == 0) {
-                resolve(99)
-            }
+            // if(currentDeckP2.length == 0) {
+            //     resolve(99)
+            // }
             const p1_selectedCard = getPossibleCard(p2_selectedCard,SortArray(allExpand(currentDeckP1)),currentDeckP1,isOdd)
-            if (p1_selectedCard.length == 0){
-                resolve(99) 
-            }
+            // if (p1_selectedCard.length == 0){
+            //     resolve(99) 
+            // }
             let v = 100
             p1_selectedCard.forEach(element => {
                 var currentDeckP1_slice = currentDeckP1.slice();
@@ -74,14 +74,14 @@ const max_value_function = (p1_selectedCard,currentDeckP1,currentDeckP2,a,b,leve
             const ret_u = heuristic(currentDeckP1,highestCardValue)
             resolve(ret_u)
         } else {
-            if(currentDeckP1.length == 0) {
-                resolve(-99)
-            }
+            // if(currentDeckP1.length == 0) {
+            //     resolve(-99)
+            // }
             const p2_selectedCard = getPossibleCard(p1_selectedCard,SortArray(allExpand(currentDeckP2)),currentDeckP2,isOdd)
             let v = -100
-            if (p2_selectedCard.length == 0){
-                resolve(-99) 
-            }
+            // if (p2_selectedCard.length == 0){
+            //     resolve(-99) 
+            // }
             p2_selectedCard.forEach(element => {
                 var currentDeckP2_slice = currentDeckP2.slice();
                 element.forEach(e => {
@@ -216,36 +216,67 @@ const isSelectedCardCanPlay = (p1SelectedCard,p2SelectedCard) => {
 }
 
 // Validate Even turn or Odd turn
-const validateSelectedCards = (isOdd, selectedCards, currentDeck) => {
+
+const validateSelectedCards = (isOdd, selectedCards, currentDeck, previousCardNum,isPower) => {
   let isError = false;
   if (isOdd != null) {
-    if (isOdd && selectedCards.length % 2 == 0) {
-    //   console.log("you can't use even cards on this round");
-      return true;
+    if (isOdd){
+      if (selectedCards.length % 2 == 0) {
+        // console.log("you can't use even cards on this round");
+        return true;
+      }
+      if((Math.floor(selectedCards.length /3) === 0) && isPower){
+        // console.log("you must use 3 cards");
+        return true;
+      }
     }
-    if (!isOdd && selectedCards.length % 2 == 1) {
-    //   console.log("you can't use odd cards on this round");
-      return true;
+    else{
+      if (selectedCards.length % 2 == 1) {
+        // console.log("you can't use odd cards on this round");
+        return true;
+      }
+      if((Math.floor(selectedCards.length /3) === 0) && isPower){
+        // console.log("you must use 4 cards");
+        return true;
+      }
     }
   }
+
   let representCardNum = null;  
+  let selectedCardsUsed = [];
   selectedCards.forEach(element => {
     let selectedCardNum = Math.floor(element/4);
     if(representCardNum != null && selectedCardNum != representCardNum){
+    //   console.log('you must use same card number for multiple cards');
       isError = true;
       return;
     }
     representCardNum = selectedCardNum;
     if (currentDeck.indexOf(element) === -1) {
-      console.log("you don't have the card");
+    //   console.log("you don't have the card");
       isError = true;
       return;
+    }
+    if(previousCardNum != null && selectedCardNum < previousCardNum){
+      if(isPower !== true && Math.floor(selectedCards.length/2) == 0){
+        // console.log("you can't use lower point cards");
+        isError = true;
+        return;
+      }
+    }
+    if(selectedCardsUsed.indexOf(element) != -1){
+      //   console.log("you can't use same card multiple times")
+      isError = true;
+      return;
+    }
+    else{
+      selectedCardsUsed.push(element);
     }
   });
   
   return isError;
 }
 
-getAISelectedCards(currentDeckP1,currentDeckP2,p1_selectedCards,highestCardValue,isOdd).then((results)=>{
-    console.log(results)
+getAISelectedCards(true,[ 6, 7, 10, 13, 14, 15 ], [ 1, 2, 3, 5, 8, 11],[],4).then((results)=>{
+    console.log('Ai Choose ',results)
 })
