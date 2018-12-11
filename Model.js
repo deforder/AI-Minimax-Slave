@@ -1,7 +1,7 @@
-const max_depth = 1
-const currentDeckP1 = [ 4, 5, 6, 7, 8, 9, 12, 15, 16 ]
-const currentDeckP2 = [ 0, 1, 3, 10, 11, 13, 14, 17, 18, 19 ]
-const p1_selectedCards = [ 2 ]
+const max_depth = 3
+const currentDeckP1 = [ 4, 6, 7, 9, 10 ]
+const currentDeckP2 = [ 1, 2, 3, 5, 8, 11 ]
+const p1_selectedCards = [ 0 ]
 const highestCardValue = 3
 const isOdd = true
 
@@ -13,11 +13,16 @@ const getAISelectedCards = (currentDeckP1, currentDeckP2, p1_selectedCards, high
         const a = 5
         const b = -5
         const p2_selectedCard = getPossibleCard(p1_selectedCards,SortArray(allExpand(currentDeckP2)),currentDeckP2,isOdd)
-
-        p2_selectedCard.forEach(element => {
-            var currentDeckP2_slice = currentDeckP2.slice();
-            element.forEach(e => {
-                currentDeckP2_slice.splice(currentDeckP2_slice.indexOf(e),1)
+        if (p2_selectedCard.length == 1) {
+            resolve(p2_selectedCard[0])
+        } else if (p2_selectedCard.length == 0) {
+            resolve([])
+        } else {
+            p2_selectedCard.forEach(element => {
+                var currentDeckP2_slice = currentDeckP2.slice();
+                element.forEach(e => {
+                    currentDeckP2_slice.splice(currentDeckP2_slice.indexOf(e),1)
+                })
                 min_value_function(element,currentDeckP1,currentDeckP2_slice,a,b,0,highestCardValue,isOdd).then((results)=> {
                     if (results > maxVal) {
                         maxVal = results
@@ -25,8 +30,8 @@ const getAISelectedCards = (currentDeckP1, currentDeckP2, p1_selectedCards, high
                         resolve(action)
                     }
                 })
-            })
-        });
+            });
+        }
     })
 }
 
@@ -40,19 +45,26 @@ const min_value_function = (p2_selectedCard,currentDeckP1,currentDeckP2,a,b,leve
         if (level >= max_depth) {
             const ret_u = heuristic(currentDeckP2,highestCardValue)
             resolve(ret_u)
+        } else {
+            if(currentDeckP2.length == 0) {
+                resolve(99)
+            }
+            const p1_selectedCard = getPossibleCard(p2_selectedCard,SortArray(allExpand(currentDeckP1)),currentDeckP1,isOdd)
+            if (p1_selectedCard.length == 0){
+                resolve(99) 
+            }
+            let v = 100
+            p1_selectedCard.forEach(element => {
+                var currentDeckP1_slice = currentDeckP1.slice();
+                element.forEach(e => {
+                    currentDeckP1_slice.splice(currentDeckP1_slice.indexOf(e),1)
+                })
+                max_value_function(element,currentDeckP1_slice,currentDeckP2,a,b,level+1,highestCardValue,isOdd).then((results)=>{
+                    v = Math.min(v,results)
+                    resolve(v)
+                })
+            });
         }
-        const p1_selectedCard = getPossibleCard(p2_selectedCard,SortArray(allExpand(currentDeckP1)),currentDeckP1,isOdd)
-        let v = 100
-        p1_selectedCard.forEach(element => {
-            var currentDeckP1_slice = currentDeckP1.slice();
-            element.forEach(e => {
-                currentDeckP1_slice.splice(currentDeckP1_slice.indexOf(e),1)
-            })
-            max_value_function(element,currentDeckP1_slice,currentDeckP2,a,b,level+1,highestCardValue,isOdd).then((results)=>{
-                v = Math.min(v,results)
-                resolve(v)
-            })
-        });
     })
 }
 
@@ -61,19 +73,31 @@ const max_value_function = (p1_selectedCard,currentDeckP1,currentDeckP2,a,b,leve
         if (level >= max_depth) {
             const ret_u = heuristic(currentDeckP1,highestCardValue)
             resolve(ret_u)
+        } else {
+            if(currentDeckP1.length == 0) {
+                resolve(-99)
+            }
+            const p2_selectedCard = getPossibleCard(p1_selectedCard,SortArray(allExpand(currentDeckP2)),currentDeckP2,isOdd)
+            let v = -100
+            if (p2_selectedCard.length == 0){
+                resolve(-99) 
+            }
+            p2_selectedCard.forEach(element => {
+                var currentDeckP2_slice = currentDeckP2.slice();
+                element.forEach(e => {
+                    currentDeckP2_slice.splice(currentDeckP2_slice.indexOf(e),1)
+                })
+                if(currentDeckP2_slice.length == 0){
+                    resolve(-99)
+                } else {
+                min_value_function(element,currentDeckP1,currentDeckP2_slice,a,b,level+1,highestCardValue,isOdd).then((results)=>{
+                    v = Math.max(v,results)
+                    resolve(v)
+                })
+                }
+            });
         }
-        const p2_selectedCard = getPossibleCard(p1_selectedCard,SortArray(allExpand(currentDeckP2)),currentDeckP2,isOdd)
-        let v = -100
-        p2_selectedCard.forEach(element => {
-            var currentDeckP2_slice = currentDeckP2.slice();
-            element.forEach(e => {
-                currentDeckP2_slice.splice(currentDeckP2_slice.indexOf(e),1)
-            })
-            min_value_function(element,currentDeckP1,currentDeckP2_slice,a,b,level+1,highestCardValue,isOdd).then((results)=>{
-                v = Math.max(v,results)
-                resolve(v)
-            })
-        });
+
     })
 }
 
