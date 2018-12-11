@@ -178,7 +178,7 @@ const GroupNode = (data) => {
 const getPossibleCard = (p1SelectedCard,p2SelectedCard,p2Card,isOdd) => {
     var PossibleCardP2 = []
     for(let i = 0; i < p2SelectedCard.length;i++) {
-        if(isSelectedCardCanPlay(p1SelectedCard, p2SelectedCard[i]) && (!validateSelectedCards(isOdd, p2SelectedCard[i],p2Card))) {
+        if(isSelectedCardCanPlay(p1SelectedCard, p2SelectedCard[i]) && (!(validateSelectedCards(isOdd, p2SelectedCard[i],p2Card).isError))) {
             PossibleCardP2.push(p2SelectedCard[i])
         }
     }
@@ -227,27 +227,33 @@ const convertNumToCard = (cardNum) => {
   return cardName;
 }
 
-const validateSelectedCards = (isOdd, selectedCards, currentDeck, previousCardNum,isPower) => {
-  let isError = false;
+const validateSelectedCards = (isOdd, selectedCards, currentDeck, previousCardPoint,isPower) => {
+  let result = {};
+  result.isError = false;
+  result.msg = null;
   if (isOdd != null) {
     if (isOdd){
       if (selectedCards.length % 2 == 0) {
-        console.log("you can't use even cards on this round");
-        return true;
+        result.isError = true;
+        result.msg = "you can't use even cards on this round";
+        return result;
       }
       if((Math.floor(selectedCards.length /3) === 0) && isPower){
-        console.log("you must use 3 cards");
-        return true;
+        result.isError = true;
+        result.msg = "you must use 3 cards";
+        return result;
       }
     }
     else{
       if (selectedCards.length % 2 == 1) {
-        console.log("you can't use odd cards on this round");
-        return true;
+        result.isError = true;
+        result.msg = "you can't use odd cards on this round";
+        return result;
       }
       if((Math.floor(selectedCards.length /3) === 0) && isPower){
-        console.log("you must use 4 cards");
-        return true;
+        result.isError = true;
+        result.msg = "you must use 4 cards";
+        return result;
       }
     }
   }
@@ -257,26 +263,26 @@ const validateSelectedCards = (isOdd, selectedCards, currentDeck, previousCardNu
   selectedCards.forEach(element => {
     let selectedCardNum = Math.floor(element/4);
     if(representCardNum != null && selectedCardNum != representCardNum){
-      console.log('you must use same card number for multiple cards');
-      isError = true;
+      result.msg = "you must use same card number for multiple cards";
+      result.isError = true;
       return;
     }
     representCardNum = selectedCardNum;
     if (currentDeck.indexOf(element) === -1) {
-      console.log("you don't have the card");
-      isError = true;
+      result.msg = "you don't have the card";
+      result.isError = true;
       return;
     }
-    if(previousCardNum != null && selectedCardNum < previousCardNum){
+    if(previousCardPoint != null && element < previousCardPoint){
       if(isPower !== true && Math.floor(selectedCards.length/2) == 0){
-        console.log("you can't use lower point cards");
-        isError = true;
+        result.msg = "you can't use lower point cards";
+        result.isError = true;
         return;
       }
     }
     if(selectedCardsUsed.indexOf(element) != -1){
-      console.log("you can't use same card multiple times")
-      isError = true;
+      result.msg= "you can't use same card multiple times";
+      result.isError = true;
       return;
     }
     else{
@@ -284,7 +290,7 @@ const validateSelectedCards = (isOdd, selectedCards, currentDeck, previousCardNu
     }
   });
   
-  return isError;
+  return result;
 }
 
 const convertCardToNum = (cardName) => {
@@ -323,7 +329,7 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
   newDeck.p1Deck.sort(sortNumber);
   newDeck.p2Deck.sort(sortNumber);
   let isOdd = null;
-  let previousCardNum = null;
+  let previousCardPoint = null;
   let isPower = false;
   while (isNotOver) {
     console.log('Your current Card: ');
@@ -333,7 +339,7 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
     console.log();
     if (isOdd == null) {
       console.log('====== NEW ROUND ======');
-      previousCardNum = null;
+      previousCardPoint = null;
       isPower = false;
     }
     else {
@@ -353,8 +359,8 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
       console.log();
       isOdd = null;
     }
-
-    if (!validateSelectedCards(isOdd,selectedCards,newDeck.p1Deck,previousCardNum,isPower)) {
+    let validateResult = validateSelectedCards(isOdd,selectedCards,newDeck.p1Deck,previousCardPoint,isPower);
+    if (!validateResult.isError) {
       if (selectedCards.length > 0) {
         if (selectedCards.length % 2 == 0) {
           isOdd = false;
@@ -372,6 +378,7 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
       });
       // aiSelectedCards
       getAISelectedCards(isOdd, newDeck.p1Deck, newDeck.p2Deck, selectedCards, highestCardNum * 4).then((aiSelectedCards) =>{
+        console.log(aiSelectedCards);
         if (aiSelectedCards.length === 0) {
           console.log();
           console.log('AI has been forfeit this round!');
@@ -390,7 +397,9 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
             isPower = true;
           }
           aiSelectedCards.forEach(element => {
-            previousCardNum = Math.floor(element/4);
+            if(previousCardPoint == null || previousCardPoint < element){
+              previousCardPoint = element;
+            }
             process.stdout.write(convertNumToCard(element) + ' ');;
             let index = newDeck.p2Deck.indexOf(element);
             newDeck.p2Deck.splice(index, 1);
@@ -398,6 +407,9 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
           console.log();
         }
       })
+    }
+    else{
+      console.log(validateResult.msg);
     }
     if (newDeck.p1Deck.length === 0 || newDeck.p2Deck.length === 0) {
       isNotOver = false;
