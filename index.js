@@ -178,8 +178,14 @@ const GroupNode = (data) => {
 // List All Possible Card
 const getPossibleCard = (p1SelectedCard, p2SelectedCard, p2Card, isOdd) => {
   var PossibleCardP2 = []
+  var isPower
   for (let i = 0; i < p2SelectedCard.length; i++) {
-    if (isSelectedCardCanPlay(p1SelectedCard, p2SelectedCard[i]) && (!(validateSelectedCards(isOdd, p2SelectedCard[i], p2Card).isError))) {
+    if (p1SelectedCard.length > 2) {
+      isPower = true
+    } else {
+      isPower = false
+    }
+    if (isSelectedCardCanPlay(p1SelectedCard, p2SelectedCard[i]) && (!(validateSelectedCards(isOdd, p2SelectedCard[i], p2Card, p2SelectedCard[i][p2SelectedCard[i].length-1],isPower).isError))) {
       PossibleCardP2.push(p2SelectedCard[i])
     }
   }
@@ -350,7 +356,7 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
       else {
         process.stdout.write((isOdd ? '[Odd]' : '[Even]') + ' ');
       }
-      cardstr = readline.question("enter your cards (use space for multiple cards, type F to forfeit this round) : ");
+      cardstr = readline.question("enter your cards (use space for multiple cards, type F to skip this round) : ");
       let selectedCards = [];
       if (!(cardstr.toUpperCase() === 'F')) {
         let cards = cardstr.split(" ");
@@ -360,7 +366,7 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
       }
       else {
         console.log();
-        console.log('You have forfeit this round!');
+        console.log('You have skip this round!');
         console.log();
         isOdd = null;
         previousCardPoint = null;
@@ -383,12 +389,14 @@ assignDeck(0, pDeck, highestCardNum * 4, (newDeck) => {
           let index = newDeck.p1Deck.indexOf(element);
           newDeck.p1Deck.splice(index, 1);
         });
-        // aiSelectedCards
+        console.log('AI current Card:'+ '\n')
+        newDeck.p2Deck.forEach(element => {
+          process.stdout.write(convertNumToCard(element) + ' ');
+        });
         getAISelectedCards(isOdd, newDeck.p1Deck, newDeck.p2Deck, selectedCards, highestCardNum * 4).then((aiSelectedCards) => {
-
           if (aiSelectedCards.length === 0) {
             console.log();
-            console.log('AI has been forfeit this round!');
+            console.log('AI has been skip this round!');
             console.log();
             isOdd = null;
           }
