@@ -1,14 +1,80 @@
-const max_depth = 3
+const max_depth = 1
 const currentDeckP1 = [ 4, 5, 6, 7, 8, 9, 12, 15, 16 ]
 const currentDeckP2 = [ 0, 1, 3, 10, 11, 13, 14, 17, 18, 19 ]
 const p1_selectedCards = [ 2 ]
-const p2_selectedCards = [ [0],[1] ]
 const highestCardValue = 3
 const isOdd = true
 
 // Ai Playing Card
 const getAISelectedCards = (currentDeckP1, currentDeckP2, p1_selectedCards, highestCardValue, isOdd) => {
-    dosomething()
+    return new Promise((resolve, reject) => {
+        var action
+        var maxVal = -100
+        const a = 5
+        const b = -5
+        const p2_selectedCard = getPossibleCard(p1_selectedCards,SortArray(allExpand(currentDeckP2)),currentDeckP2,isOdd)
+
+        p2_selectedCard.forEach(element => {
+            var currentDeckP2_slice = currentDeckP2.slice();
+            element.forEach(e => {
+                currentDeckP2_slice.splice(currentDeckP2_slice.indexOf(e),1)
+                min_value_function(element,currentDeckP1,currentDeckP2_slice,a,b,0,highestCardValue,isOdd).then((results)=> {
+                    if (results > maxVal) {
+                        maxVal = results
+                        action = element
+                        resolve(action)
+                    }
+                })
+            })
+        });
+    })
+}
+
+const heuristic = (state,highestCardValue)=>{
+    const groupNode = GroupNode(state)
+    return groupNode.length
+}
+
+const min_value_function = (p2_selectedCard,currentDeckP1,currentDeckP2,a,b,level,highestCardValue,isOdd) =>{
+    return new Promise((resolve, reject) => {
+        if (level >= max_depth) {
+            const ret_u = heuristic(currentDeckP2,highestCardValue)
+            resolve(ret_u)
+        }
+        const p1_selectedCard = getPossibleCard(p2_selectedCard,SortArray(allExpand(currentDeckP1)),currentDeckP1,isOdd)
+        let v = 100
+        p1_selectedCard.forEach(element => {
+            var currentDeckP1_slice = currentDeckP1.slice();
+            element.forEach(e => {
+                currentDeckP1_slice.splice(currentDeckP1_slice.indexOf(e),1)
+            })
+            max_value_function(element,currentDeckP1_slice,currentDeckP2,a,b,level+1,highestCardValue,isOdd).then((results)=>{
+                v = Math.min(v,results)
+                resolve(v)
+            })
+        });
+    })
+}
+
+const max_value_function = (p1_selectedCard,currentDeckP1,currentDeckP2,a,b,level,highestCardValue,isOdd)=>{
+    return new Promise((resolve, reject) => {
+        if (level >= max_depth) {
+            const ret_u = heuristic(currentDeckP1,highestCardValue)
+            resolve(ret_u)
+        }
+        const p2_selectedCard = getPossibleCard(p1_selectedCard,SortArray(allExpand(currentDeckP2)),currentDeckP2,isOdd)
+        let v = -100
+        p2_selectedCard.forEach(element => {
+            var currentDeckP2_slice = currentDeckP2.slice();
+            element.forEach(e => {
+                currentDeckP2_slice.splice(currentDeckP2_slice.indexOf(e),1)
+            })
+            min_value_function(element,currentDeckP1,currentDeckP2_slice,a,b,level+1,highestCardValue,isOdd).then((results)=>{
+                v = Math.max(v,results)
+                resolve(v)
+            })
+        });
+    })
 }
 
 // Check Win State
@@ -106,13 +172,13 @@ const isSelectedCardCanPlay = (p1SelectedCard,p2SelectedCard) => {
             const checkNumberP2 = parseInt((p2SelectedCard[j] + 4)/4)
             const checkTypeCardP2 = parseInt((p2SelectedCard[j]%4))
             if (checkNumberP2 > checkNumberP1) {
-                console.log();
+                // console.log();
             } else if (checkNumberP2 == checkNumberP1){
                 if (checkTypeCardP2 < checkTypeCardP1){
                     maxTypeCard = checkTypeCardP2
                 } else {
                     if (maxTypeCard < checkTypeCardP1){
-                        console.log();
+                        // console.log();
                     } else {
                         return false
                     }
@@ -156,4 +222,6 @@ const validateSelectedCards = (isOdd, selectedCards, currentDeck) => {
   return isError;
 }
 
-console.log(getPossibleCard(p1_selectedCards, p2_selectedCards, currentDeckP2, isOdd))
+getAISelectedCards(currentDeckP1,currentDeckP2,p1_selectedCards,highestCardValue,isOdd).then((results)=>{
+    console.log(results)
+})
