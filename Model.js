@@ -291,6 +291,9 @@ const validateSelectedCards = (isOdd, selectedCards, currentDeck, previousCardNu
   return isError;
 }
 
-getAISelectedCards(true,[ 6, 7, 10, 13, 14, 15 ], [ 1, 2, 3, 5, 8, 11],[],4).then((results)=>{
-    console.log('Ai Choose ',results)
-})
+// getAISelectedCards(true,[ 6, 7, 10, 13, 14, 15 ], [ 1, 2, 3, 5, 8, 11],[],4).then((results)=>{
+//     console.log('Ai Choose ',results)
+// })
+
+
+console.log(heuristic([ 6, 7, 10, 13, 14, 15 ],5))
